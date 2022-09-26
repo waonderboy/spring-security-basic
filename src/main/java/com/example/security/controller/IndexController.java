@@ -1,11 +1,22 @@
 package com.example.security.controller;
 
+import com.example.security.domain.User;
+import com.example.security.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import java.time.LocalDateTime;
+
 
 @Controller
+@RequiredArgsConstructor
 public class IndexController {
+
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @GetMapping("/")
     public String home(){
@@ -30,19 +41,30 @@ public class IndexController {
         return "manager";
     }
 
-    @GetMapping("/login")
-    public String login() {
-        return "login";
+    @GetMapping("/loginForm")
+    public String loginForm() {
+        return "loginForm";
     }
 
-    @GetMapping("/join")
-    public String join() {
-        return "join";
+    @GetMapping("/joinForm")
+    public String joinForm() {
+        return "joinForm";
     }
 
-    @GetMapping("/joinProc")
-    @ResponseBody
-    public String joinProc() {
-        return "회원가입 완료됨";
+    /**
+     * 1. userJoinForm 이라는 DTO 객체 생성
+     * 2. 폼 유효성 검증필요, Validator도 필요할지도
+     * 3. 유저에 인가부여 서비스 필요
+     */
+    @PostMapping("/join")
+    public String join(User user) {
+        user.setRole("ROLE_USER");
+        String rawPassword = user.getPassword();
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        user.setPassword(encodedPassword);
+        user.setCreatedDate(LocalDateTime.now());
+        userRepository.save(user); // 비밀번호가 평문으로 전송, 시큐리티로 로그인이 안됨
+        return "redirect:/loginForm";
     }
+
 }
