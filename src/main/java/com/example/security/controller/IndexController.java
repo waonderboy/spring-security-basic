@@ -3,10 +3,13 @@ package com.example.security.controller;
 import com.example.security.domain.User;
 import com.example.security.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDateTime;
 
@@ -27,16 +30,19 @@ public class IndexController {
     }
 
     @GetMapping("/user")
+    @ResponseBody
     public String user() {
         return "user";
     }
 
     @GetMapping("/admin")
+    @ResponseBody
     public String admin() {
         return "admin";
     }
 
     @GetMapping("/manager")
+    @ResponseBody
     public String manager() {
         return "manager";
     }
@@ -65,6 +71,20 @@ public class IndexController {
         user.setCreatedDate(LocalDateTime.now());
         userRepository.save(user); // 비밀번호가 평문으로 전송, 시큐리티로 로그인이 안됨
         return "redirect:/loginForm";
+    }
+
+    @GetMapping("/info")
+    @Secured("ROLE_ADMIN")
+    @ResponseBody
+    public String info() {
+        return "개인정보";
+    }
+
+    @GetMapping("/data")
+    @PreAuthorize("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
+    @ResponseBody
+    public String data() {
+        return "데이터정보";
     }
 
 }
